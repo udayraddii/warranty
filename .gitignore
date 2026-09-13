@@ -1,3 +1,8 @@
 
 # graphify-axet
 .graphify/
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
