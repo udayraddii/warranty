@@ -50,9 +50,36 @@ def get_claims():
     if not claims:
         return []
 
+    product_rows = execute_query("SELECT * FROM PRODUCTS")
+    supplier_rows = execute_query("SELECT * FROM SUPPLIERS")
+
+    product_index = {
+        str(row[key]): row
+        for row in product_rows
+        for key in ("product_id", "product", "material_id", "material")
+        if row.get(key) is not None
+    }
+    supplier_index = {
+        str(row[key]): row
+        for row in supplier_rows
+        for key in ("supplier_id", "supplier")
+        if row.get(key) is not None
+    }
+
     enriched_claims: List[Dict[str, Any]] = []
 
     for claim in claims:
+        product_lookup_key = claim.get("product") or claim.get("product_id") or claim.get("material_id") or claim.get("material")
+        supplier_lookup_key = claim.get("supplier") or claim.get("supplier_id")
+        product_details = product_index.get(str(product_lookup_key), {})
+        supplier_details = supplier_index.get(str(supplier_lookup_key), {})
+        claim = {
+            **claim,
+            "product_family": claim.get("product_family") or product_details.get("product_family") or product_details.get("family"),
+            "product_name": claim.get("product_name") or product_details.get("product_name") or product_details.get("name"),
+            "supplier_name": claim.get("supplier_name") or supplier_details.get("supplier_name") or supplier_details.get("name"),
+        }
+
         product_key = claim.get("product") or claim.get("material") or claim.get("product_id") or claim.get("material_id")
         failure_code = claim.get("failure_code") or claim.get("failure") or claim.get("defect_code")
         supplier_key = claim.get("supplier") or claim.get("supplier_id")

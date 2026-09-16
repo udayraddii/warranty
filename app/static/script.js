@@ -12,11 +12,30 @@ async function fetchClaims() {
 
 function appendCell(row, value, className = '') {
     const cell = document.createElement('td');
-    cell.textContent = value ?? '';
+    if (Array.isArray(value)) {
+        cell.textContent = value.join(', ');
+    } else if (value && typeof value === 'object') {
+        cell.textContent = JSON.stringify(value);
+    } else {
+        cell.textContent = value ?? '';
+    }
     if (className) {
         cell.className = className;
     }
     row.appendChild(cell);
+}
+
+function formatColumnName(key) {
+    return key
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function findClaimValue(claim, column) {
+    const matchingKey = Object.keys(claim).find(
+        (key) => key.toLowerCase() === column.toLowerCase()
+    );
+    return matchingKey ? claim[matchingKey] : '';
 }
 
 function appendRecommendationCell(row, claim) {
@@ -54,23 +73,40 @@ function appendRecommendationCell(row, claim) {
 }
 
 function renderClaimsTable(claims) {
+    const tableHead = document.getElementById('claims-table-head');
     const tbody = document.getElementById('claims-table-body');
+    tableHead.innerHTML = '';
     tbody.innerHTML = '';
+
+    const apiColumns = [...new Set(claims.flatMap((claim) => Object.keys(claim)))];
+    const requestedColumns = ['supplier_name', 'product_family', 'product_name'];
+    const columns = [
+        ...requestedColumns,
+        ...apiColumns.filter((column) => !requestedColumns.includes(column.toLowerCase())),
+    ];
+    const headerRow = document.createElement('tr');
+    columns.forEach((column) => {
+        const header = document.createElement('th');
+        header.textContent = formatColumnName(column);
+        headerRow.appendChild(header);
+    });
+    tableHead.appendChild(headerRow);
 
     claims.forEach((claim) => {
         const tr = document.createElement('tr');
 
-        appendCell(tr, claim.claim_id);
-        appendCell(tr, claim.product || claim.product_id);
-        appendCell(tr, claim.material || claim.material_id || claim.product_id);
-        appendCell(tr, claim.supplier || claim.supplier_id);
-        appendCell(tr, claim.serial);
-        appendCell(tr, claim.batch || claim.batch_id);
-        appendCell(tr, claim.failure_code);
+        columns.forEach((column) => {
+            if (column === 'recommendations') {
+                appendRecommendationCell(tr, claim);
+                return;
+            }
 
-        const severity = String(claim.severity || '').toLowerCase();
-        appendCell(tr, claim.severity, `severity severity-${severity}`);
-        appendRecommendationCell(tr, claim);
+            const value = findClaimValue(claim, column);
+            const className = column === 'severity'
+                ? `severity severity-${String(value || '').toLowerCase()}`
+                : '';
+            appendCell(tr, value, className);
+        });
 
         tbody.appendChild(tr);
     });
