@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warranty Claims Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css?v=2">
+</head>
+<body>
+    <header>
+        <h1>Warranty Claims Dashboard</h1>
+    </header>
+    <main>
+        <section id="claims">
+            <h2>Claims Overview</h2>
+            <div class="table-shell">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Claim ID</th>
+                        <th>Product</th>
+                        <th>Material</th>
+                        <th>Supplier</th>
+                        <th>Serial</th>
+                        <th>Batch</th>
+                        <th>Failure Code</th>
+                        <th>Severity</th>
+                        <th>Recommendations</th>
+                    </tr>
+                </thead>
+                <tbody id="claims-table-body">
+                    <!-- Data dynamically inserted here -->
+                </tbody>
+            </table>
+            </div>
+        </section>
+    </main>
+    <script src="/static/script.js?v=2"></script>
+</body>
+</html>
